@@ -13,6 +13,7 @@ module BitmaskAttributes
     # = OVERRIDE TO SERIALIZE =
     # =========================
     
+    alias_method :orig_replace, :replace
     %w(push << delete replace reject! select!).each do |override|
       class_eval(<<-EOEVAL)
         def #{override}(*args)
@@ -39,8 +40,13 @@ module BitmaskAttributes
         end
       end
     
+      def symbolize!
+        orig_replace(map(&:to_sym))
+      end
+
       def updated!
         validate!
+        symbolize!
         uniq!
         serialize!
       end

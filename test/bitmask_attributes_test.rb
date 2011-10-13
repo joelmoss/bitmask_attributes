@@ -34,7 +34,10 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
       assert_stored campaign, :web, :print, :phone
       campaign.medium << :phone
       assert_stored campaign, :web, :print, :phone
+      campaign.medium << "phone"
+      assert_stored campaign, :web, :print, :phone
       assert_equal 1, campaign.medium.select { |value| value == :phone }.size
+      assert_equal 0, campaign.medium.select { |value| value == "phone" }.size
     end
 
     should "can assign new values at once to bitmask" do
