@@ -22,10 +22,10 @@ module BitmaskAttributes
 
       def validate_for(model)
         # The model cannot be validated if it is preloaded and the attribute/column is not in the
-        # database (the migration has not been run).  This usually
-        # occurs in the 'test' and 'production' environments.
-        return if defined?(Rails) && Rails.configuration.cache_classes
-
+        # database (the migration has not been run) or table doesn't exist. This usually
+        # occurs in the 'test' and 'production' environment or during migration.
+        return if defined?(Rails) && Rails.configuration.cache_classes || !model.table_exists?
+       
         unless model.columns.detect { |col| col.name == attribute.to_s }
           raise ArgumentError, "`#{attribute}' is not an attribute of `#{model}'"
         end
