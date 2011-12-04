@@ -133,17 +133,22 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
         @company = Company.create(:name => "Test Co, Intl.")
         @campaign1 = @company.campaigns.create :medium => [:web, :print]        
         @campaign2 = @company.campaigns.create
-        @campaign3 = @company.campaigns.create :medium => [:web, :email] 
+        @campaign3 = @company.campaigns.create :medium => [:web, :email]
+        @campaign4 = @company.campaigns.create :medium => [:web]
       end
 
       should "support retrieval by any value" do
-        assert_equal [@campaign1, @campaign3], @company.campaigns.with_medium
+        assert_equal [@campaign1, @campaign3, @campaign4], @company.campaigns.with_medium
       end
 
       should "support retrieval by one matching value" do
         assert_equal [@campaign1], @company.campaigns.with_medium(:print)
       end
-      
+      should "support retrieval by exact value" do
+        assert_equal [@campaign4], @company.campaigns.with_exact_medium(:web)
+        assert_equal [@campaign1], @company.campaigns.with_exact_medium(:web, :print)
+        assert_equal [@campaign2], @company.campaigns.with_exact_medium
+      end
       should "support retrieval by any matching value (OR)" do
         assert_equal [@campaign1, @campaign3], @company.campaigns.with_any_medium(:print, :email)
       end
@@ -159,7 +164,7 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
       end
       
       should "support retrieval without a specific value" do
-        assert_equal [@campaign2, @campaign3], @company.campaigns.without_medium(:print)
+        assert_equal [@campaign2, @campaign3, @campaign4], @company.campaigns.without_medium(:print)
       end
     end
 
@@ -179,7 +184,7 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
         Campaign.find(:all, :conditions => ['medium & ? <> 0', Campaign.bitmask_for_medium(:print)]),
         Campaign.medium_for_print
       )
-      
+
       assert_equal Campaign.medium_for_print.first, Campaign.medium_for_print.medium_for_web.first
       
       assert_equal [], Campaign.medium_for_email

@@ -71,6 +71,10 @@ A couple useful named scopes are also generated when you use
     # => (all users who are BOTH editors and writers)
     User.with_any_roles(:editor, :writer)
     # => (all users who are editors OR writers)
+    User.with_exact_roles(:writer)
+    # => (all users who are ONLY writers)
+    User.with_exact_roles(:writer, :editor)
+    # => (all users who are BOTH editors and writers and nothing else)
 
 Find records without any bitmask set:
 
@@ -85,6 +89,7 @@ Find records without a specific attribute.
     # => (all users who are not editors)
 
 Note that "without_" only supports a single attribute argument, and the "no_" method does not support arguments.
+And "with_exact_" without arguments is alias for "no_"
 
 
 === Adding Methods
