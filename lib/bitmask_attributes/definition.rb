@@ -128,7 +128,7 @@ module BitmaskAttributes
               end              
               }                    
           
-          scope :no_#{attribute}, where("#{attribute} = 0 OR #{attribute} IS NULL")
+          scope :no_#{attribute}, proc { where("#{attribute} = 0 OR #{attribute} IS NULL") }
           
           scope :with_any_#{attribute},
             proc { |*values|
@@ -146,7 +146,7 @@ module BitmaskAttributes
         values.each do |value|
           model.class_eval %(
             scope :#{attribute}_for_#{value},
-                  where('#{attribute} & ? <> 0', #{model}.bitmask_for_#{attribute}(:#{value}))
+                  proc { where('#{attribute} & ? <> 0', #{model}.bitmask_for_#{attribute}(:#{value})) }
           )
         end      
       end
