@@ -65,7 +65,7 @@ module BitmaskAttributes
       def create_attribute_methods_on(model)
         model.class_eval %(
           def self.values_for_#{attribute}      # def self.values_for_numbers
-            #{values}                           #   [:one, :two, :three]
+            #{values.inspect}                   #   [:one, :two, :three]
           end                                   # end
         )
       end
