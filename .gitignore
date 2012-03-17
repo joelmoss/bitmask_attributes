@@ -7,3 +7,4 @@ pkg
 .#*
 *.gem
 /nbproject
+.idea/

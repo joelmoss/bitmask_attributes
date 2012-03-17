@@ -25,9 +25,10 @@ module BitmaskAttributes
         # database (the migration has not been run) or table doesn't exist. This usually
         # occurs in the 'test' and 'production' environment or during migration.
         return if defined?(Rails) && Rails.configuration.cache_classes || !model.table_exists?
-       
+
         unless model.columns.detect { |col| col.name == attribute.to_s }
-          raise ArgumentError, "`#{attribute}' is not an attribute of `#{model}'"
+          # raise ArgumentError, "`#{attribute}' is not an attribute of `#{model}'"
+          Rails.logger.warn "WARNING: `#{attribute}' is not an attribute of `#{model}'. But, it's ok if it happens during migrations and your \"bitmasked\" attribute is still not created."
         end
       end
     
@@ -65,7 +66,7 @@ module BitmaskAttributes
       def create_attribute_methods_on(model)
         model.class_eval %(
           def self.values_for_#{attribute}      # def self.values_for_numbers
-            #{values.inspect}                   #   [:one, :two, :three]
+            #{values}                           #   [:one, :two, :three]
           end                                   # end
         )
       end
@@ -105,11 +106,16 @@ module BitmaskAttributes
       end
     
       def create_scopes_on(model)
+        if (column = model.columns.detect{|column| column.name == attribute.to_s}) && column.null
+          or_is_null_condition = " OR #{attribute} IS NULL"
+          or_is_not_null_condition = " OR #{attribute} IS NOT NULL"
+        end
+
         model.class_eval %(
           scope :with_#{attribute},
             proc { |*values|
               if values.blank?
-                where('#{attribute} > 0 OR #{attribute} IS NOT NULL')
+                where('#{attribute} > 0#{or_is_not_null_condition}')
               else
                 sets = values.map do |value|
                   mask = #{model}.bitmask_for_#{attribute}(value)
@@ -122,24 +128,21 @@ module BitmaskAttributes
             proc { |value| 
               if value
                 mask = #{model}.bitmask_for_#{attribute}(value)
-                where("#{attribute} IS NULL OR #{attribute} & ? = 0", mask)
+                where("#{attribute} & ? = 0#{or_is_null_condition}", mask)
               else
-                where("#{attribute} IS NULL OR #{attribute} = 0")
+                where("#{attribute} = 0#{or_is_null_condition}")
               end              
               }                    
           
-          scope :no_#{attribute}, proc { where("#{attribute} = 0 OR #{attribute} IS NULL") }
-          
+          scope :no_#{attribute}, proc { where("#{attribute} = 0#{or_is_null_condition}") }
+
           scope :with_any_#{attribute},
             proc { |*values|
               if values.blank?
-                where('#{attribute} > 0 OR #{attribute} IS NOT NULL')
+                where('#{attribute} > 0#{or_is_not_null_condition}')
               else
-                sets = values.map do |value|
-                  mask = #{model}.bitmask_for_#{attribute}(value)
-                  "#{attribute} & \#{mask} <> 0"
-                end
-                where(sets.join(' OR '))
+                mask = values.inject(0){|sum,value| sum + #{model}.bitmask_for_#{attribute}(value)}
+                where("#{attribute} & \#{mask} <> 0")
               end
             }
         )
