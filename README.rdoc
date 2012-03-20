@@ -79,12 +79,15 @@ Find records without any bitmask set:
     User.no_roles
     # => (all users without a role)
 
-Find records without a specific attribute.
+Find records without specific attributes:
 
     User.without_roles(:editor)
     # => (all users who are not editors)
 
-Note that "without_" only supports a single attribute argument, and the "no_" method does not support arguments.
+    User.without_roles(:editor, :writer)
+    # => (all users who are neither editors nor writers)
+
+Note that "without_" supports arguments, and the "no_" method does not support arguments.
 
 
 === Adding Methods

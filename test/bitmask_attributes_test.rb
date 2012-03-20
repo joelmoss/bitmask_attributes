@@ -161,6 +161,12 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
       should "support retrieval without a specific value" do
         assert_equal [@campaign2, @campaign3], @company.campaigns.without_medium(:print)
       end
+
+      should "support retrieval without specific values" do
+        @campaign4 = @company.campaigns.create :medium => [:phone]
+        assert_equal [@campaign2], @company.campaigns.without_medium(:print, :email, :phone)
+        assert_equal [@campaign2, @campaign4], @company.campaigns.without_medium(:print, :email)
+      end      
     end
 
     should "can check if at least one value is set" do

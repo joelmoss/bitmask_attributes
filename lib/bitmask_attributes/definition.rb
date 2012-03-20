@@ -119,12 +119,15 @@ module BitmaskAttributes
               end
             }
           scope :without_#{attribute}, 
-            proc { |value| 
-              if value
-                mask = #{model}.bitmask_for_#{attribute}(value)
-                where("#{attribute} IS NULL OR #{attribute} & ? = 0", mask)
-              else
+            proc { |*values|
+              if values.blank?
                 where("#{attribute} IS NULL OR #{attribute} = 0")
+              else
+                sets = values.map do |value|
+                  mask = #{model}.bitmask_for_#{attribute}(value)
+                  "#{attribute} & \#{mask} = 0"
+                end                
+                where("#{attribute} IS NULL OR (\#{sets.join(' AND ')})")
               end              
               }                    
           
