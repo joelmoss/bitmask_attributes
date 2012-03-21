@@ -38,11 +38,11 @@ end
 
 class CampaignWithoutNull < ActiveRecord::Base
   belongs_to :company,:class_name => 'CompanyWithoutNull'
-  bitmask :medium, :as => [:web, :print, :email, :phone]
-  bitmask :misc, :as => %w(some useless values) do
+  bitmask :medium, :as => [:web, :print, :email, :phone], :null => false
+  bitmask :misc, :as => %w(some useless values), :null => false do
     def worked?
       true
     end
   end
-  bitmask :Legacy, :as => [:upper, :case]
+  bitmask :Legacy, :as => [:upper, :case], :null => false
 end

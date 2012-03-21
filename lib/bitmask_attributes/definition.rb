@@ -1,11 +1,12 @@
 module BitmaskAttributes
   class Definition
-    attr_reader :attribute, :values, :extension
+    attr_reader :attribute, :values, :allow_null, :extension
     
-    def initialize(attribute, values=[], &extension)
+    def initialize(attribute, values=[],allow_null = true, &extension)
       @attribute = attribute
       @values = values
       @extension = extension
+      @allow_null = allow_null
     end
     
     def install_on(model)
@@ -17,7 +18,7 @@ module BitmaskAttributes
       create_scopes_on model
       create_attribute_methods_on model
     end
-    
+
     private
 
       def validate_for(model)
@@ -27,7 +28,6 @@ module BitmaskAttributes
         return if defined?(Rails) && Rails.configuration.cache_classes || !model.table_exists?
 
         unless model.columns.detect { |col| col.name == attribute.to_s }
-          # raise ArgumentError, "`#{attribute}' is not an attribute of `#{model}'"
           Rails.logger.warn "WARNING: `#{attribute}' is not an attribute of `#{model}'. But, it's ok if it happens during migrations and your \"bitmasked\" attribute is still not created."
         end
       end
@@ -106,7 +106,7 @@ module BitmaskAttributes
       end
     
       def create_scopes_on(model)
-        if (column = model.columns.detect{|column| column.name == attribute.to_s}) && column.null
+        if allow_null
           or_is_null_condition = " OR #{attribute} IS NULL"
           or_is_not_null_condition = " OR #{attribute} IS NOT NULL"
         end

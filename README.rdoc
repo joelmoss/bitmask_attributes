@@ -107,6 +107,13 @@ named scopes):
     user.other_attribute.worked?
     # => true
 
+=== Handling null values
+
+By default, bitmasks support the potential for the underlying integer value to be null. However, if you have created
+a field that is guaranteed never to be null, you can simplify the SQL query conditions by declaring ":null => false"
+in the definition:
+
+     bitmask :never_null_attributes,:as => [:value1, :value2], :null => false
 
 === Warning: Modifying possible values
 
