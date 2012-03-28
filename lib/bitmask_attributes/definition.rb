@@ -118,7 +118,7 @@ module BitmaskAttributes
                 where('#{attribute} > 0#{or_is_not_null_condition}')
               else
                 sets = values.map do |value|
-                  mask = #{model}.bitmask_for_#{attribute}(value)
+                  mask = ::#{model}.bitmask_for_#{attribute}(value)
                   "#{attribute} & \#{mask} <> 0"
                 end
                 where(sets.join(' AND '))
@@ -127,7 +127,7 @@ module BitmaskAttributes
           scope :without_#{attribute}, 
             proc { |value| 
               if value
-                mask = #{model}.bitmask_for_#{attribute}(value)
+                mask = ::#{model}.bitmask_for_#{attribute}(value)
                 where("#{attribute} & ? = 0#{or_is_null_condition}", mask)
               else
                 where("#{attribute} = 0#{or_is_null_condition}")
@@ -139,7 +139,7 @@ module BitmaskAttributes
               if values.blank?
                 no_#{attribute}
               else
-                mask = values.inject(0) {|sum, value| sum | #{model}.bitmask_for_#{attribute}(value) }
+                mask = values.inject(0) {|sum, value| sum | ::#{model}.bitmask_for_#{attribute}(value) }
                 where("#{attribute} = ?", mask)
               end
             }
@@ -151,7 +151,7 @@ module BitmaskAttributes
               if values.blank?
                 where('#{attribute} > 0#{or_is_not_null_condition}')
               else
-                mask = values.inject(0){|sum,value| sum + #{model}.bitmask_for_#{attribute}(value)}
+                mask = values.inject(0){|sum,value| sum + ::#{model}.bitmask_for_#{attribute}(value)}
                 where("#{attribute} & \#{mask} <> 0")
               end
             }
@@ -159,7 +159,7 @@ module BitmaskAttributes
         values.each do |value|
           model.class_eval %(
             scope :#{attribute}_for_#{value},
-                  proc { where('#{attribute} & ? <> 0', #{model}.bitmask_for_#{attribute}(:#{value})) }
+                  proc { where('#{attribute} & ? <> 0', ::#{model}.bitmask_for_#{attribute}(:#{value})) }
           )
         end      
       end
