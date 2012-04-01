@@ -141,23 +141,26 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
           @campaign2 = @company.campaigns.create
           @campaign3 = @company.campaigns.create :medium => [:web, :email]
           @campaign4 = @company.campaigns.create :medium => [:web]
+          @campaign5 = @company.campaigns.create :medium => [:web, :print, :email]
+          @campaign6 = @company.campaigns.create :medium => [:web, :print, :email, :phone]
+          @campaign7 = @company.campaigns.create :medium => [:email, :phone]
         end
 
         should "support retrieval by any value" do
-          assert_equal [@campaign1, @campaign3, @campaign4], @company.campaigns.with_medium
+          assert_equal [@campaign1, @campaign3, @campaign4, @campaign5, @campaign6, @campaign7], @company.campaigns.with_medium
         end
 
         should "support retrieval by one matching value" do
-          assert_equal [@campaign1], @company.campaigns.with_medium(:print)
+          assert_equal [@campaign1, @campaign5, @campaign6], @company.campaigns.with_medium(:print)
         end
 
         should "support retrieval by any matching value (OR)" do
-          assert_equal [@campaign1, @campaign3], @company.campaigns.with_any_medium(:print, :email)
+          assert_equal [@campaign1, @campaign3, @campaign5, @campaign6, @campaign7], @company.campaigns.with_any_medium(:print, :email)
         end
 
         should "support retrieval by all matching values" do
-          assert_equal [@campaign1], @company.campaigns.with_medium(:web, :print)
-          assert_equal [@campaign3], @company.campaigns.with_medium(:web, :email)
+          assert_equal [@campaign1, @campaign5, @campaign6], @company.campaigns.with_medium(:web, :print)
+          assert_equal [@campaign3, @campaign5, @campaign6], @company.campaigns.with_medium(:web, :email)
         end
 
         should "support retrieval for no values" do
@@ -166,13 +169,31 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
         end
 
         should "support retrieval without a specific value" do
-          assert_equal [@campaign2, @campaign3, @campaign4], @company.campaigns.without_medium(:print)
+          assert_equal [@campaign2, @campaign3, @campaign4, @campaign7], @company.campaigns.without_medium(:print)
+          assert_equal [@campaign2, @campaign7], @company.campaigns.without_medium(:web, :print)
+          assert_equal [@campaign2, @campaign3, @campaign4], @company.campaigns.without_medium(:print, :phone)
         end
         
         should "support retrieval by exact value" do
           assert_equal [@campaign4], @company.campaigns.with_exact_medium(:web)
           assert_equal [@campaign1], @company.campaigns.with_exact_medium(:web, :print)
           assert_equal [@campaign2], @company.campaigns.with_exact_medium
+        end
+
+        should "not retrieve retrieve a subsequent zero value for an unqualified with scope " do
+          assert_equal [@campaign1, @campaign3, @campaign4, @campaign5, @campaign6, @campaign7], @company.campaigns.with_medium
+          @campaign4.medium = []
+          @campaign4.save
+          assert_equal [@campaign1, @campaign3, @campaign5, @campaign6, @campaign7], @company.campaigns.with_medium
+          assert_equal [@campaign1, @campaign3, @campaign5, @campaign6, @campaign7], @company.campaigns.with_any_medium
+        end
+
+        should "not retrieve retrieve a subsequent zero value for a qualified with scope " do
+          assert_equal [@campaign1, @campaign3, @campaign4, @campaign5, @campaign6], @company.campaigns.with_medium(:web)
+          @campaign4.medium = []
+          @campaign4.save
+          assert_equal [@campaign1, @campaign3, @campaign5, @campaign6], @company.campaigns.with_medium(:web)
+          assert_equal [@campaign1, @campaign3, @campaign5, @campaign6], @company.campaigns.with_any_medium(:web)
         end
       end
 
