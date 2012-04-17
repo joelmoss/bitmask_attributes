@@ -145,7 +145,7 @@ As an alternative, you may provide a special symbol representing "zero":
 
     In model...
         class SomeModel < ActiveRecord::Base
-            bitmask :some_attribute, :as => [:value1, :value2], :zero => :none
+            bitmask :some_attribute, :as => [:value1, :value2], :zero_value => :none
         end
 
     In view...
