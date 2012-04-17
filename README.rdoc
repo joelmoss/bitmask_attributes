@@ -118,6 +118,51 @@ in the definition:
 
      bitmask :never_null_attributes,:as => [:value1, :value2], :null => false
 
+=== Allowing for a "zero" value
+
+It is common to use web forms to set bitmask bits using checkboxes. If the various bits each are represented by a
+checkbox and the user unchecks them all, the resulting "params" posted to the controller will be missing. When this
+happens, a controller will need to ensure that a "params" hash entry has an empty array or a call to "update_attributes"
+will not change the attribute. For example:
+
+    In model...
+        class SomeModel < ActiveRecord::Base
+            bitmask :some_attribute, :as => [:value1, :value2]
+        end
+
+    In view...
+        <input type="checkbox" name="some_model[some_attribute][]" value="value1"/>
+        <input type="checkbox" name="some_model[some_attribute][]" value="value2"/>
+
+    In controller...
+        def update
+            @some_model = SomeModel.find(params[:id])
+            params[:some_attribute] ||= []
+            @some_model.update_attributes(params)
+        end
+
+As an alternative, you may provide a special symbol representing "zero":
+
+    In model...
+        class SomeModel < ActiveRecord::Base
+            bitmask :some_attribute, :as => [:value1, :value2], :zero => :none
+        end
+
+    In view...
+        <input type="checkbox" name="some_model[some_attribute][]" value="value1"/>
+        <input type="checkbox" name="some_model[some_attribute][]" value="value2"/>
+        <input type="hidden"   name="some_model[some_attribute][]" value="none"/>
+
+    In controller...
+        def update
+            @some_model = SomeModel.find(params[:id])
+            @some_model.update_attributes(params)
+        end
+
+This technique can be particularly useful for both forms and web services where setting the attribute in question may
+be optionally included or not such that the controller setting of an empty array in the first example would not be
+correct.
+
 === Warning: Modifying possible values
 
 IMPORTANT: Once you have data using a bitmask, don't change the order

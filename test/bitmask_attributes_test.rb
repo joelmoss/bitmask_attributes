@@ -105,6 +105,7 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
       end
 
       should "ignore blanks fed as values" do
+        assert_equal 0b11,@campaign_class.bitmask_for_medium(:web, :print, '')
         campaign = @campaign_class.new(:medium => [:web, :print, ''])
         assert_stored campaign, :web, :print
       end
@@ -230,6 +231,23 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
         assert campaign.save
 
         assert_equal [campaign], @campaign_class.no_medium
+      end
+
+      should "allow zero in values without changing result" do
+        assert_equal 0,@campaign_class.bitmask_for_allow_zero(:none)
+        assert_equal 0b111,@campaign_class.bitmask_for_allow_zero(:one,:two,:three,:none)
+
+        campaign = @campaign_class.new(:allow_zero => :none)
+        assert campaign.save
+        assert_equal [],campaign.allow_zero
+
+        campaign.allow_zero = :none
+        assert campaign.save
+        assert_equal [],campaign.allow_zero
+
+        campaign.allow_zero = [:one,:none]
+        assert campaign.save
+        assert_equal [:one],campaign.allow_zero
       end
 
 
