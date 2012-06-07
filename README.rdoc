@@ -137,7 +137,7 @@ will not change the attribute. For example:
     In controller...
         def update
             @some_model = SomeModel.find(params[:id])
-            params[:some_attribute] ||= []
+            params[:some_model][:some_attribute] ||= []
             @some_model.update_attributes(params)
         end
 
