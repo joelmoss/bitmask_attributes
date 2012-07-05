@@ -174,7 +174,7 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
           assert_equal [@campaign2, @campaign7], @company.campaigns.without_medium(:web, :print)
           assert_equal [@campaign2, @campaign3, @campaign4], @company.campaigns.without_medium(:print, :phone)
         end
-        
+
         should "support retrieval by exact value" do
           assert_equal [@campaign4], @company.campaigns.with_exact_medium(:web)
           assert_equal [@campaign1], @company.campaigns.with_exact_medium(:web, :print)
@@ -272,4 +272,6 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
 
   context_with_classes 'Campaign with null attributes',CampaignWithNull,CompanyWithNull
   context_with_classes 'Campaign without null attributes',CampaignWithoutNull,CompanyWithoutNull
+  context_with_classes 'SubCampaign with null attributes',SubCampaignWithNull,CompanyWithNull
+  context_with_classes 'SubCampaign without null attributes',SubCampaignWithoutNull,CompanyWithoutNull
 end
