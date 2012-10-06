@@ -1,7 +1,7 @@
 module BitmaskAttributes
   class Definition
     attr_reader :attribute, :values, :allow_null, :zero_value, :extension
-    
+
     def initialize(attribute, values=[],allow_null = true,zero_value = nil, &extension)
       @attribute = attribute
       @values = values
@@ -9,7 +9,7 @@ module BitmaskAttributes
       @allow_null = allow_null
       @zero_value = zero_value
     end
-    
+
     def install_on(model)
       validate_for model
       generate_bitmasks_on model
@@ -49,12 +49,12 @@ module BitmaskAttributes
           end
         end
       end
-    
+
       def override(model)
         override_getter_on(model)
         override_setter_on(model)
       end
-    
+
       def override_getter_on(model)
         model.class_eval %(
           def #{attribute}
@@ -62,7 +62,7 @@ module BitmaskAttributes
           end
         )
       end
-    
+
       def override_setter_on(model)
         model.class_eval %(
           def #{attribute}=(raw_value)
@@ -81,7 +81,7 @@ module BitmaskAttributes
           end
         )
       end
-    
+
       # Returns the defined values as an Array.
       def create_attribute_methods_on(model)
         model.class_eval %(
@@ -90,7 +90,7 @@ module BitmaskAttributes
           end                                   # end
         )
       end
-    
+
       def create_convenience_class_method_on(model)
         model.class_eval %(
           def self.bitmask_for_#{attribute}(*values)
@@ -120,7 +120,7 @@ module BitmaskAttributes
       def create_convenience_instance_methods_on(model)
         values.each do |value|
           model.class_eval %(
-            def #{attribute}_for_#{value}?                  
+            def #{attribute}_for_#{value}?
               self.#{attribute}?(:#{value})
             end
           )
@@ -129,7 +129,11 @@ module BitmaskAttributes
           def #{attribute}?(*values)
             if !values.blank?
               values.all? do |value|
-                self.#{attribute}.include?(value)
+                if #{eval_string_for_zero('value')}
+                  self.#{attribute}.blank?
+                else
+                  self.#{attribute}.include?(value)
+                end
               end
             else
               self.#{attribute}.present?
@@ -137,7 +141,7 @@ module BitmaskAttributes
           end
         )
       end
-    
+
       def create_scopes_on(model)
         or_is_null_condition = " OR #{attribute} IS NULL" if allow_null
 
@@ -148,18 +152,26 @@ module BitmaskAttributes
                 where('#{attribute} > 0')
               else
                 sets = values.map do |value|
-                  mask = ::#{model}.bitmask_for_#{attribute}(value)
-                  "#{attribute} & \#{mask} <> 0"
+                  if #{eval_string_for_zero('value')}
+                    "#{attribute} = 0"
+                  else
+                    mask = ::#{model}.bitmask_for_#{attribute}(value)
+                    "#{attribute} & \#{mask} <> 0"
+                  end
                 end
                 where(sets.join(' AND '))
               end
             }
-          scope :without_#{attribute}, 
+          scope :without_#{attribute},
             proc { |*values|
               if values.blank?
                 no_#{attribute}
               else
-                where("#{attribute} & ? = 0#{or_is_null_condition}", ::#{model}.bitmask_for_#{attribute}(*values))
+                relation = where("#{attribute} & ? = 0#{or_is_null_condition}", ::#{model}.bitmask_for_#{attribute}(*values))
+                if values.any?{|value|#{eval_string_for_zero('value')}}
+                  relation = relation.where("#{attribute} > 0")
+                end
+                relation
               end
             }
 
@@ -171,7 +183,7 @@ module BitmaskAttributes
                 where("#{attribute} = ?", ::#{model}.bitmask_for_#{attribute}(*values))
               end
             }
-          
+
           scope :no_#{attribute}, proc { where("#{attribute} = 0#{or_is_null_condition}") }
 
           scope :with_any_#{attribute},
@@ -188,7 +200,7 @@ module BitmaskAttributes
             scope :#{attribute}_for_#{value},
                   proc { where('#{attribute} & ? <> 0', ::#{model}.bitmask_for_#{attribute}(:#{value})) }
           )
-        end      
+        end
       end
 
       def eval_string_for_zero(value_string)
