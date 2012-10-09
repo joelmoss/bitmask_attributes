@@ -90,6 +90,15 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
         assert_unsupported { @campaign_class.bitmask_for_medium(:web, :and_this_isnt_valid)  }
       end
 
+      should "can determine bitmask entries using inverse convenience method" do
+        assert @campaign_class.medium_for_bitmask(3)
+        assert_equal([:web, :print], @campaign_class.medium_for_bitmask(3))
+      end
+
+      should "assert use of non Fixnum value in inverse convenience method will result in exception" do
+        assert_unsupported { @campaign_class.medium_for_bitmask(:this_isnt_valid)  }
+      end
+
       should "hash of values is with indifferent access" do
         string_bit = nil
         assert_nothing_raised do
