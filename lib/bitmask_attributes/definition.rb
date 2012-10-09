@@ -84,6 +84,17 @@ module BitmaskAttributes
               bitmask | bit
             end
           end
+
+          def self.#{attribute}_for_bitmask(entry)
+            unless entry.is_a? Fixnum
+              raise ArgumentError, "Expected a Fixnum, but got: \#{entry.inspect}"
+            end
+            self.bitmasks[:#{attribute}].inject([]) do |values, (value, bitmask)|
+              values.tap do
+                values << value.to_sym if (entry & bitmask > 0)
+              end
+            end
+          end
         )
       end
 
