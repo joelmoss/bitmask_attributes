@@ -53,6 +53,14 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
         assert_stored campaign, :phone, :email
       end
 
+      should "can assign raw bitmask values" do
+        campaign = @campaign_class.new
+        campaign.medium_bitmask = 3
+        assert_stored campaign, :web, :print
+        campaign.medium_bitmask = 0
+        assert_empty campaign.medium
+      end
+
       should "can save bitmask to db and retrieve values transparently" do
         campaign = @campaign_class.new(:medium => [:web, :print])
         assert_stored campaign, :web, :print
@@ -76,6 +84,18 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
         campaign = @campaign_class.new(:medium => :web)
         assert_unsupported { campaign.medium << :this_will_fail_also }
         assert_unsupported { campaign.medium = [:so_will_this] }
+      end
+
+      should "can only use Fixnum values for raw bitmask values" do
+        campaign = @campaign_class.new(:medium => :web)
+        assert_unsupported { campaign.medium_bitmask = :this_will_fail }
+      end
+
+      should "cannot use unsupported values for raw bitmask values" do
+        campaign = @campaign_class.new(:medium => :web)
+        number_of_attributes = @campaign_class.bitmasks[:medium].size
+        assert_unsupported { campaign.medium_bitmask = (2 ** number_of_attributes) }
+        assert_unsupported { campaign.medium_bitmask = -1 }
       end
 
       should "can determine bitmasks using convenience method" do
