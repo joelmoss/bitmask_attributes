@@ -191,7 +191,11 @@ module BitmaskAttributes
               if values.blank?
                 where('#{attribute} > 0')
               else
-                where("#{attribute} & ? <> 0", ::#{model}.bitmask_for_#{attribute}(*values))
+                clause = "#{attribute} & ? <> 0"
+                if values.any?{|value|#{eval_string_for_zero('value')}}
+                  clause += " OR #{attribute} = 0#{or_is_null_condition}"
+                end
+                where(clause, ::#{model}.bitmask_for_#{attribute}(*values))
               end
             }
         )

@@ -271,6 +271,7 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
         assert_equal [],campaign.allow_zero
         assert_equal [campaign], @campaign_class.with_allow_zero(:none)
         assert_equal [], @campaign_class.without_allow_zero(:none)
+        assert_equal [campaign], @campaign_class.with_any_allow_zero(:none, :one)
 
         campaign.allow_zero = :none
         assert campaign.save
