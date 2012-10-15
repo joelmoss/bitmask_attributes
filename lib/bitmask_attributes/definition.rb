@@ -180,7 +180,11 @@ module BitmaskAttributes
               if values.blank?
                 no_#{attribute}
               else
-                where("#{attribute} = ?", ::#{model}.bitmask_for_#{attribute}(*values))
+                relation = where("#{attribute} = ?", ::#{model}.bitmask_for_#{attribute}(*values))
+                if values.any?{|value|#{eval_string_for_zero('value')}}
+                  relation = relation.where("#{attribute} = 0#{or_is_null_condition}")
+                end
+                relation
               end
             }
 
