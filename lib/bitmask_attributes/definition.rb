@@ -29,10 +29,19 @@ module BitmaskAttributes
         return if defined?(Rails) && Rails.configuration.cache_classes || !model.table_exists?
 
         unless model.columns.detect { |col| col.name == attribute.to_s }
-          Rails.logger.warn "WARNING: `#{attribute}' is not an attribute of `#{model}'. But, it's ok if it happens during migrations and your \"bitmasked\" attribute is still not created."
+          missing_attribute(attribute, model)
         end
       end
-    
+
+      def missing_attribute(attribute, model)
+        message = "WARNING: `#{attribute}' is not an attribute of `#{model.class.name}'. But, it's ok if it happens during migrations and your \"bitmasked\" attribute is still not created."
+        if defined?(Rails)
+          Rails.logger.warn message
+        else
+          STDERR.puts message
+        end
+      end
+
       def generate_bitmasks_on(model)
         model.bitmasks[attribute] = HashWithIndifferentAccess.new.tap do |mapping|
           values.each_with_index do |value, index|
