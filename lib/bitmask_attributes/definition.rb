@@ -145,11 +145,11 @@ module BitmaskAttributes
           scope :with_#{attribute},
             proc { |*values|
               if values.blank?
-                where('#{attribute} > 0')
+                where('#{model.table_name}.#{attribute} > 0')
               else
                 sets = values.map do |value|
                   mask = ::#{model}.bitmask_for_#{attribute}(value)
-                  "#{attribute} & \#{mask} <> 0"
+                  "#{model.table_name}.#{attribute} & \#{mask} <> 0"
                 end
                 where(sets.join(' AND '))
               end
@@ -159,7 +159,7 @@ module BitmaskAttributes
               if values.blank?
                 no_#{attribute}
               else
-                where("#{attribute} & ? = 0#{or_is_null_condition}", ::#{model}.bitmask_for_#{attribute}(*values))
+                where("#{model.table_name}.#{attribute} & ? = 0#{or_is_null_condition}", ::#{model}.bitmask_for_#{attribute}(*values))
               end
             }
 
@@ -168,7 +168,7 @@ module BitmaskAttributes
               if values.blank?
                 no_#{attribute}
               else
-                where("#{attribute} = ?", ::#{model}.bitmask_for_#{attribute}(*values))
+                where("#{model.table_name}.#{attribute} = ?", ::#{model}.bitmask_for_#{attribute}(*values))
               end
             }
           
@@ -177,16 +177,16 @@ module BitmaskAttributes
           scope :with_any_#{attribute},
             proc { |*values|
               if values.blank?
-                where('#{attribute} > 0')
+                where('#{model.table_name}.#{attribute} > 0')
               else
-                where("#{attribute} & ? <> 0", ::#{model}.bitmask_for_#{attribute}(*values))
+                where("#{model.table_name}.#{attribute} & ? <> 0", ::#{model}.bitmask_for_#{attribute}(*values))
               end
             }
         )
         values.each do |value|
           model.class_eval %(
             scope :#{attribute}_for_#{value},
-                  proc { where('#{attribute} & ? <> 0', ::#{model}.bitmask_for_#{attribute}(:#{value})) }
+                  proc { where('#{model.table_name}.#{attribute} & ? <> 0', ::#{model}.bitmask_for_#{attribute}(:#{value})) }
           )
         end      
       end
