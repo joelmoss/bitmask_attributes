@@ -15,6 +15,9 @@ ActiveRecord::Schema.define do
   create_table :company_without_nulls do |t|
     t.string :name
   end
+  create_table :default_values do |t|
+    t.integer :default_sym, :default_array
+  end
 end
 
 # Pseudo models for testing purposes
@@ -55,4 +58,9 @@ class CampaignWithoutNull < ActiveRecord::Base
 end
 
 class SubCampaignWithoutNull < CampaignWithNull
+end
+
+class DefaultValue < ActiveRecord::Base
+  bitmask :default_sym, :as => [:x, :y, :z], :default => :y
+  bitmask :default_array, :as => [:x, :y, :z], :default => [:y, :z]
 end

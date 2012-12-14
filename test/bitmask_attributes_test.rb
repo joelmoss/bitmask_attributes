@@ -299,6 +299,13 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
     end
   end
 
+  should "accept a default value option" do
+    assert_equal DefaultValue.new.default_sym, [:y]
+    assert_equal DefaultValue.new.default_array, [:y, :z]
+    assert_equal DefaultValue.new(:default_sym => :x).default_sym, [:x]
+    assert_equal DefaultValue.new(:default_array => [:x]).default_array, [:x]
+  end
+
   context_with_classes 'Campaign with null attributes',CampaignWithNull,CompanyWithNull
   context_with_classes 'Campaign without null attributes',CampaignWithoutNull,CompanyWithoutNull
   context_with_classes 'SubCampaign with null attributes',SubCampaignWithNull,CompanyWithNull
