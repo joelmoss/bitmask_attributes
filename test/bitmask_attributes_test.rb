@@ -306,8 +306,8 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
     assert_equal DefaultValue.new(:default_array => [:x]).default_array, [:x]
   end
 
-  context_with_classes 'Campaign with null attributes',CampaignWithNull,CompanyWithNull
-  context_with_classes 'Campaign without null attributes',CampaignWithoutNull,CompanyWithoutNull
-  context_with_classes 'SubCampaign with null attributes',SubCampaignWithNull,CompanyWithNull
-  context_with_classes 'SubCampaign without null attributes',SubCampaignWithoutNull,CompanyWithoutNull
+  context_with_classes 'Campaign with null attributes', CampaignWithNull, CompanyWithNull
+  context_with_classes 'Campaign without null attributes', CampaignWithoutNull, CompanyWithoutNull
+  context_with_classes 'SubCampaign with null attributes', SubCampaignWithNull, CompanyWithNull
+  context_with_classes 'SubCampaign without null attributes', SubCampaignWithoutNull, CompanyWithoutNull
 end

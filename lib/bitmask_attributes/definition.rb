@@ -2,7 +2,7 @@ module BitmaskAttributes
   class Definition
     attr_reader :attribute, :values, :allow_null, :zero_value, :extension
 
-    def initialize(attribute, values=[],allow_null = true,zero_value = nil, &extension)
+    def initialize(attribute, values=[], allow_null = true, zero_value = nil, &extension)
       @attribute = attribute
       @values = values
       @extension = extension
