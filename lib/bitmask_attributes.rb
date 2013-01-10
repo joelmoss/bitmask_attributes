@@ -12,7 +12,7 @@ module BitmaskAttributes
 
       if default = options[:default]
         after_initialize do
-          send("#{attribute}=", default) unless send("#{attribute}?")
+          send("#{attribute}=", default) unless send("#{attribute}?") || persisted?
         end
       end
 

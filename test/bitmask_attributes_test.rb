@@ -2,7 +2,7 @@ require 'test_helper'
 
 class BitmaskAttributesTest < ActiveSupport::TestCase
 
-  def self.context_with_classes(label,campaign_class,company_class)
+  def self.context_with_classes(label, campaign_class, company_class)
     context label do
       setup do
         @campaign_class = campaign_class
@@ -304,6 +304,16 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
     assert_equal DefaultValue.new.default_array, [:y, :z]
     assert_equal DefaultValue.new(:default_sym => :x).default_sym, [:x]
     assert_equal DefaultValue.new(:default_array => [:x]).default_array, [:x]
+  end
+  
+  should "save empty bitmask when default defined" do
+    default = DefaultValue.create
+    assert_equal [:y], default.default_sym
+    default.default_sym = []
+    default.save
+    assert_empty default.default_sym
+    default2 = DefaultValue.find(default.id)
+    assert_empty default2.default_sym
   end
 
   context_with_classes 'Campaign with null attributes', CampaignWithNull, CompanyWithNull
