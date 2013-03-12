@@ -43,6 +43,12 @@ module BitmaskAttributes
       @bitmasks ||= {}
     end
   end
+
+  def reload(*)
+    super
+    self.class.bitmasks.keys.each{|attribute| self.send("reload_#{attribute}")}
+    self
+  end
 end
 
 ActiveRecord::Base.send :include, BitmaskAttributes
