@@ -139,6 +139,19 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
         assert_stored campaign, :web, :print
       end
 
+      should "update bitmask values currently in the database with reload" do
+        instance1 = @campaign_class.create(:medium => [:web, :print])
+        instance2 = @campaign_class.find(instance1.id)
+        assert instance1.id == instance2.id
+        assert instance1.object_id != instance2.object_id
+        assert instance1.update_attributes(:medium => [:email])
+
+        assert_equal [:web, :print],instance2.medium
+
+        assert_equal @campaign_class,instance2.reload.class
+        assert_equal [:email],instance2.medium
+      end
+
       context "checking" do
         setup { @campaign = @campaign_class.new(:medium => [:web, :print]) }
 

@@ -60,6 +60,9 @@ module BitmaskAttributes
           def #{attribute}
             @#{attribute} ||= BitmaskAttributes::ValueProxy.new(self, :#{attribute}, &self.class.bitmask_definitions[:#{attribute}].extension)
           end
+          def reload_#{attribute}
+            @#{attribute} = nil
+          end
         )
       end
 
