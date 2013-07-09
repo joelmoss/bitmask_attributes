@@ -253,7 +253,7 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
         assert campaign.save
 
         assert_equal(
-          @campaign_class.find(:all, :conditions => ['medium & ? <> 0', @campaign_class.bitmask_for_medium(:print)]),
+          @campaign_class.where('medium & ? <> 0', @campaign_class.bitmask_for_medium(:print)).to_a,
           @campaign_class.medium_for_print
         )
 
@@ -318,7 +318,7 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
     assert_equal DefaultValue.new(:default_sym => :x).default_sym, [:x]
     assert_equal DefaultValue.new(:default_array => [:x]).default_array, [:x]
   end
-  
+
   should "save empty bitmask when default defined" do
     default = DefaultValue.create
     assert_equal [:y], default.default_sym
