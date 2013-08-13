@@ -1,4 +1,5 @@
 Gemfile.lock
+gemfiles/*.lock
 *.sw?
 .DS_Store
 coverage
