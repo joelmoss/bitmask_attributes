@@ -35,7 +35,7 @@ module BitmaskAttributes
 
       def missing_attribute(attribute, model)
         message = "WARNING: `#{attribute}' is not an attribute of `#{model.class.name}'. But, it's ok if it happens during migrations and your \"bitmasked\" attribute is still not created."
-        if defined?(Rails)
+        if defined?(Rails) && Rails.respond_to?(:logger)
           Rails.logger.warn message
         else
           STDERR.puts message
