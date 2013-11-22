@@ -55,9 +55,9 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
 
       should "can assign raw bitmask values" do
         campaign = @campaign_class.new
-        campaign.medium_bitmask = 3
+        campaign.medium = 3
         assert_stored campaign, :web, :print
-        campaign.medium_bitmask = 0
+        campaign.medium = 0
         assert_empty campaign.medium
       end
 
@@ -86,16 +86,11 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
         assert_unsupported { campaign.medium = [:so_will_this] }
       end
 
-      should "can only use Fixnum values for raw bitmask values" do
-        campaign = @campaign_class.new(:medium => :web)
-        assert_unsupported { campaign.medium_bitmask = :this_will_fail }
-      end
-
       should "cannot use unsupported values for raw bitmask values" do
         campaign = @campaign_class.new(:medium => :web)
         number_of_attributes = @campaign_class.bitmasks[:medium].size
-        assert_unsupported { campaign.medium_bitmask = (2 ** number_of_attributes) }
-        assert_unsupported { campaign.medium_bitmask = -1 }
+        assert_unsupported { campaign.medium = (2 ** number_of_attributes) }
+        assert_unsupported { campaign.medium = -1 }
       end
 
       should "can determine bitmasks using convenience method" do
@@ -292,23 +287,22 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
         assert_equal [:one],campaign.allow_zero
       end
 
+    end
 
-      private
+    private
 
-        def assert_unsupported(&block)
-          assert_raises(ArgumentError, &block)
-        end
+    def assert_unsupported(&block)
+      assert_raises(ArgumentError, &block)
+    end
 
-        def assert_stored(record, *values)
-          values.each do |value|
-            assert record.medium.any? { |v| v.to_s == value.to_s }, "Values #{record.medium.inspect} does not include #{value.inspect}"
-          end
-          full_mask = values.inject(0) do |mask, value|
-            mask | @campaign_class.bitmasks[:medium][value]
-          end
-          assert_equal full_mask, record.medium.to_i
-        end
-
+    def assert_stored(record, *values)
+      values.each do |value|
+        assert record.medium.any? { |v| v.to_s == value.to_s }, "Values #{record.medium.inspect} does not include #{value.inspect}"
+      end
+      full_mask = values.inject(0) do |mask, value|
+        mask | @campaign_class.bitmasks[:medium][value]
+      end
+      assert_equal full_mask, record.medium.to_i
     end
   end
 
@@ -318,7 +312,7 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
     assert_equal DefaultValue.new(:default_sym => :x).default_sym, [:x]
     assert_equal DefaultValue.new(:default_array => [:x]).default_array, [:x]
   end
-  
+
   should "save empty bitmask when default defined" do
     default = DefaultValue.create
     assert_equal [:y], default.default_sym
@@ -333,7 +327,7 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
   context_with_classes 'Campaign without null attributes', CampaignWithoutNull, CompanyWithoutNull
   context_with_classes 'SubCampaign with null attributes', SubCampaignWithNull, CompanyWithNull
   context_with_classes 'SubCampaign without null attributes', SubCampaignWithoutNull, CompanyWithoutNull
-  
+
   should "allow subclasses to have different values for bitmask than parent" do
     a = CampaignWithNull.new
     b = SubCampaignWithNull.new
@@ -346,5 +340,5 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
     assert_equal a.different_per_class, [:set_for_parent]
     assert_equal b.different_per_class, [:set_for_sub]
   end
-  
+
 end
