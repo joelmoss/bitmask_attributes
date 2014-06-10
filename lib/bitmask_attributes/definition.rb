@@ -73,8 +73,8 @@ module BitmaskAttributes
             self.#{attribute}.replace(values.reject{|value| #{eval_string_for_zero('value')}})
           end
           def #{attribute}_bitmask=(entry)
-            unless entry.is_a? Fixnum
-              raise ArgumentError, "Expected a Fixnum, but got: \#{entry.inspect}"
+            unless entry.is_a? Integer
+              raise ArgumentError, "Expected a Integer, but got: \#{entry.inspect}"
             end
             unless entry.between?(0, ((2 ** self.class.bitmasks[:#{attribute}].size) - 1))
               raise ArgumentError, "Unsupported value for #{attribute}: \#{entry.inspect}"
@@ -108,8 +108,8 @@ module BitmaskAttributes
           end
 
           def self.#{attribute}_for_bitmask(entry)
-            unless entry.is_a? Fixnum
-              raise ArgumentError, "Expected a Fixnum, but got: \#{entry.inspect}"
+            unless entry.is_a? Integer
+              raise ArgumentError, "Expected a Integer, but got: \#{entry.inspect}"
             end
             self.bitmasks[:#{attribute}].inject([]) do |values, (value, bitmask)|
               values.tap do

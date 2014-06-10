@@ -86,7 +86,7 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
         assert_unsupported { campaign.medium = [:so_will_this] }
       end
 
-      should "can only use Fixnum values for raw bitmask values" do
+      should "can only use Integer values for raw bitmask values" do
         campaign = @campaign_class.new(:medium => :web)
         assert_unsupported { campaign.medium_bitmask = :this_will_fail }
       end
@@ -115,7 +115,7 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
         assert_equal([:web, :print], @campaign_class.medium_for_bitmask(3))
       end
 
-      should "assert use of non Fixnum value in inverse convenience method will result in exception" do
+      should "assert use of non Integer value in inverse convenience method will result in exception" do
         assert_unsupported { @campaign_class.medium_for_bitmask(:this_isnt_valid)  }
       end
 
@@ -318,7 +318,7 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
     assert_equal DefaultValue.new(:default_sym => :x).default_sym, [:x]
     assert_equal DefaultValue.new(:default_array => [:x]).default_array, [:x]
   end
-  
+
   should "save empty bitmask when default defined" do
     default = DefaultValue.create
     assert_equal [:y], default.default_sym
@@ -333,7 +333,7 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
   context_with_classes 'Campaign without null attributes', CampaignWithoutNull, CompanyWithoutNull
   context_with_classes 'SubCampaign with null attributes', SubCampaignWithNull, CompanyWithNull
   context_with_classes 'SubCampaign without null attributes', SubCampaignWithoutNull, CompanyWithoutNull
-  
+
   should "allow subclasses to have different values for bitmask than parent" do
     a = CampaignWithNull.new
     b = SubCampaignWithNull.new
@@ -346,5 +346,14 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
     assert_equal a.different_per_class, [:set_for_parent]
     assert_equal b.different_per_class, [:set_for_sub]
   end
-  
+
+  should "allow work with bignums" do
+    values = [ :value32, :value33, :value64 ]
+    a = BignumAttribute.new
+    a.values = values
+    a.save!
+    a.reload
+    assert_equal a.values, values
+    assert_equal a[:values].class, Bignum
+  end
 end
