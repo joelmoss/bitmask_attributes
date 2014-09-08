@@ -52,11 +52,11 @@ module BitmaskAttributes
       end
     
       def serialize!
-        @record.send(:write_attribute, @attribute, to_i)
+        @record[@attribute] = to_i
       end
   
       def extract_values
-        stored = [@record.send(:read_attribute, @attribute) || 0, 0].max
+        stored = [@record[@attribute] || 0, 0].max
         @mapping.inject([]) do |values, (value, bitmask)|
           values.tap do
             values << value.to_sym if (stored & bitmask > 0)
