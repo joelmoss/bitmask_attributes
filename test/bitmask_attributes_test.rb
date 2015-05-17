@@ -346,5 +346,54 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
     assert_equal a.different_per_class, [:set_for_parent]
     assert_equal b.different_per_class, [:set_for_sub]
   end
-  
+
+  context "legacy data of default true value" do
+    setup do
+      @default_true_value = DefaultTrueValue.create
+    end
+
+    should "be default_sym?(:z)" do
+      assert @default_true_value.default_sym?(:z), "legacy data should default :z"
+    end
+
+    should "include :z" do
+      assert @default_true_value.default_sym.include?(:z), "legacy data defaults should include :z"
+    end
+
+    should "with_xxx should include legacy data" do
+      assert DefaultTrueValue.with_default_sym.include?(@default_true_value), "with_xxx should include legacy data"
+    end
+
+    should "with_xxx :z should include legacy data" do
+      assert DefaultTrueValue.with_default_sym(:z).include?(@default_true_value), "with_xxx(:z) should include legacy data"
+    end
+
+    should "without_xxx :z donot include legacy data" do
+      assert !DefaultTrueValue.without_default_sym(:z).include?(@default_true_value), "without_xxx(:z) should include legacy data"
+    end
+
+    should "without_xxx donot include legacy data" do
+      assert !DefaultTrueValue.without_default_sym.include?(@default_true_value), "without_xxx should include legacy data"
+    end
+
+    should "with_any_xxx :z should include :z" do
+      assert DefaultTrueValue.with_any_default_sym(:z).include?(@default_true_value), "with_any_xxx(:z) should include legacy data"
+    end
+
+    should "with_any_xxx donot include :z" do
+      assert !DefaultTrueValue.with_any_default_sym.include?(@default_true_value), "with_any_xxx(:z) should include legacy data"
+    end
+
+    should "with_exact_xxx donot include :z" do 
+      assert !DefaultTrueValue.with_exact_default_sym.include?(@default_true_value), "with_extrat_xxx should include legacy data"
+    end
+
+    should "with_exact_xxx :z donot include :z" do 
+      assert !DefaultTrueValue.with_exact_default_sym(:x, :y, :z).include?(@default_true_value), "with_extrat_xxx :z should include legacy data"
+    end
+
+    should "no_xxx donot include legacy data" do
+      assert !DefaultTrueValue.no_default_sym.include?(@default_true_value), "no_xxx donot include legacy data"
+    end
+  end
 end

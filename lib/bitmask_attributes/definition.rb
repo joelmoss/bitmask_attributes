@@ -2,12 +2,13 @@ module BitmaskAttributes
   class Definition
     attr_reader :attribute, :values, :allow_null, :zero_value, :extension
 
-    def initialize(attribute, values=[], allow_null = true, zero_value = nil, &extension)
+    def initialize(attribute, values=[], allow_null = true, zero_value = nil, revert = nil, &extension)
       @attribute = attribute
       @values = values
       @extension = extension
       @allow_null = allow_null
       @zero_value = zero_value
+      @revert = !!revert
     end
 
     def install_on(model)
@@ -58,7 +59,7 @@ module BitmaskAttributes
       def override_getter_on(model)
         model.class_eval %(
           def #{attribute}
-            @#{attribute} ||= BitmaskAttributes::ValueProxy.new(self, :#{attribute}, &self.class.bitmask_definitions[:#{attribute}].extension)
+            @#{attribute} ||= BitmaskAttributes::ValueProxy.new(self, :#{attribute}, #{@revert}, &self.class.bitmask_definitions[:#{attribute}].extension)
           end
           def reload_#{attribute}
             @#{attribute} = nil
@@ -102,7 +103,7 @@ module BitmaskAttributes
                 bit = 0
               elsif (bit = bitmasks[:#{attribute}][value]).nil?
                 raise ArgumentError, "Unsupported value for #{attribute}: \#{value.inspect}"
-              end
+              end 
               bitmask | bit
             end
           end
@@ -145,44 +146,89 @@ module BitmaskAttributes
         or_is_null_condition = " OR #{model.table_name}.#{attribute} IS NULL" if allow_null
 
         model.class_eval %(
+          scope :_bitmask_raw_no_#{attribute}, -> { where("#{model.table_name}.#{attribute} = 0#{or_is_null_condition}") }
+          scope :_bitmask_raw_any_#{attribute}, ->(*values) { 
+            if values.blank?
+              where('#{model.table_name}.#{attribute} > 0')
+            else
+              where("#{model.table_name}.#{attribute} & ? <> 0", ::#{model}.bitmask_for_#{attribute}(*values))
+            end
+          }
+          scope :_bitmask_raw_all_#{attribute}, -> { where('#{model.table_name}.#{attribute} = ?', 2**(::#{model}.values_for_#{attribute}.size+1)-1) }
+          scope :_bitmask_raw_without_#{attribute}, ->(*values) {
+            where("#{model.table_name}.#{attribute} & ? = 0#{or_is_null_condition}", ::#{model}.bitmask_for_#{attribute}(*values))
+          }
+          scope :_bitmask_raw_with_#{attribute}, ->(*values) {
+            sets = values.map do |value|
+              mask = ::#{model}.bitmask_for_#{attribute}(value)
+              "#{model.table_name}.#{attribute} & \#{mask} <> 0"
+            end
+            where(sets.join(' AND '))
+          }
+          scope :_bitmask_raw_exact_#{attribute}, ->(*values) {
+            where("#{model.table_name}.#{attribute} = ?", ::#{model}.bitmask_for_#{attribute}(*values)) 
+          }
+          scope :_bitmask_raw_exact_not_#{attribute}, ->(*values) {
+            where("#{model.table_name}.#{attribute} = ?", ::#{model}.bitmask_for_#{attribute}(*values)^2**(::#{model}.values_for_#{attribute}.size+1)-1) 
+          }
           scope :with_#{attribute},
             proc { |*values|
-              if values.blank?
-                where('#{model.table_name}.#{attribute} > 0')
+              return without_#{attribute}(values) if @revert
+              if values.blank? && #{@revert}
+                _bitmask_raw_no_#{attribute}
+              elsif values.blank?
+                _bitmask_raw_any_#{attribute}
+              elsif #{@revert}
+                _bitmask_raw_without_#{attribute}(*values)
               else
-                sets = values.map do |value|
-                  mask = ::#{model}.bitmask_for_#{attribute}(value)
-                  "#{model.table_name}.#{attribute} & \#{mask} <> 0"
-                end
-                where(sets.join(' AND '))
+                _bitmask_raw_with_#{attribute}(*values)
               end
             }
           scope :without_#{attribute},
             proc { |*values|
-              if values.blank?
-                no_#{attribute}
+              if values.blank? && #{@revert}
+                _bitmask_raw_any_#{attribute}
+              elsif values.blank?
+                _bitmask_raw_no_#{attribute}
+              elsif #{@revert}
+                _bitmask_raw_with_#{attribute}(*values)
               else
-                where("#{model.table_name}.#{attribute} & ? = 0#{or_is_null_condition}", ::#{model}.bitmask_for_#{attribute}(*values))
+                _bitmask_raw_without_#{attribute}(*values)
               end
             }
 
           scope :with_exact_#{attribute},
             proc { | *values|
-              if values.blank?
-                no_#{attribute}
+              if values.blank? && #{@revert}
+                _bitmask_raw_all_#{attribute}
+              elsif values.blank?
+                _bitmask_raw_no_#{attribute}
+              elsif #{@revert}
+                _bitmask_raw_exact_not_#{attribute}(*values)
               else
-                where("#{model.table_name}.#{attribute} = ?", ::#{model}.bitmask_for_#{attribute}(*values))
+                _bitmask_raw_exact_#{attribute}(*values)
               end
             }
 
-          scope :no_#{attribute}, proc { where("#{model.table_name}.#{attribute} = 0#{or_is_null_condition}") }
+          scope :no_#{attribute}, 
+            proc { 
+              if #{@revert}
+                _bitmask_raw_any_#{attribute}
+              else
+                _bitmask_raw_no_#{attribute}
+              end
+            }
 
           scope :with_any_#{attribute},
             proc { |*values|
-              if values.blank?
-                where('#{model.table_name}.#{attribute} > 0')
+              if values.blank? && #{@revert}
+                _bitmask_raw_all_#{attribute}
+              elsif values.blank?
+                _bitmask_raw_any_#{attribute}
+              elsif #{@revert}
+                _bitmask_raw_without_#{attribute}(*values)
               else
-                where("#{model.table_name}.#{attribute} & ? <> 0", ::#{model}.bitmask_for_#{attribute}(*values))
+                _bitmask_raw_any_#{attribute}(*values)
               end
             }
         )

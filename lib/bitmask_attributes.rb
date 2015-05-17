@@ -20,6 +20,7 @@ module BitmaskAttributes
                                                       options[:as].to_a, 
                                                       options[:null].nil? || options[:null], 
                                                       options[:zero_value], 
+                                                      options[:revert],
                                                       &extension)
 
       bitmask_definitions[attribute].install_on(self)

@@ -1,9 +1,10 @@
 module BitmaskAttributes
   class ValueProxy < Array
       
-    def initialize(record, attribute, &extension)
+    def initialize(record, attribute, revert, &extension)
       @record = record
       @attribute = attribute
+      @revert = revert
       find_mapping
       instance_eval(&extension) if extension
       super(extract_values)
@@ -59,7 +60,7 @@ module BitmaskAttributes
         stored = [@record.send(:read_attribute, @attribute) || 0, 0].max
         @mapping.inject([]) do |values, (value, bitmask)|
           values.tap do
-            values << value.to_sym if (stored & bitmask > 0)
+            values << value.to_sym if (stored & bitmask > 0) ^ @revert
           end
         end        
       end
