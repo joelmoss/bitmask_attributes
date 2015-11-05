@@ -34,6 +34,12 @@ to manual bitmasks.
     user.roles << :writer
     user.roles
     # => [:publisher, :editor, :writer]
+    user.save # Commit to the database
+
+You can remove values with `delete`:
+
+    user.roles.delete(:writer)
+    user.save # Remember to save!
 
 It's easy to find out if a record has a given value:
 
