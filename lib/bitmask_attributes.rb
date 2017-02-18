@@ -26,11 +26,11 @@ module BitmaskAttributes
     end
 
     def bitmask_definitions
-      base_class.base_class_bitmask_definitions
+      base_class_bitmask_definitions
     end
 
     def bitmasks
-      base_class.base_class_bitmasks
+      base_class_bitmasks
     end
 
     protected
