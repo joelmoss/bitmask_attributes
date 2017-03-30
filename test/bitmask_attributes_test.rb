@@ -59,6 +59,8 @@ class BitmaskAttributesTest < ActiveSupport::TestCase
         assert_stored campaign, :web, :print
         campaign.medium_bitmask = 0
         assert_empty campaign.medium
+        campaign.medium = 5
+        assert_stored campaign, :web, :email
       end
 
       should "can save bitmask to db and retrieve values transparently" do

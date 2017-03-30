@@ -69,8 +69,12 @@ module BitmaskAttributes
       def override_setter_on(model)
         model.class_eval %(
           def #{attribute}=(raw_value)
-            values = raw_value.kind_of?(Array) ? raw_value : [raw_value]
-            self.#{attribute}.replace(values.reject{|value| #{eval_string_for_zero('value')}})
+            if raw_value.is_a? Integer
+              self.#{attribute}_bitmask = raw_value
+            else
+              values = raw_value.kind_of?(Array) ? raw_value : [raw_value]
+              self.#{attribute}.replace(values.reject{|value| #{eval_string_for_zero('value')}})
+            end
           end
           def #{attribute}_bitmask=(entry)
             unless entry.is_a? Fixnum
