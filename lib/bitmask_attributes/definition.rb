@@ -138,6 +138,16 @@ module BitmaskAttributes
               self.#{attribute}.present?
             end
           end
+
+          def has_any_#{attribute}?(*values)
+            if !values.blank?
+              values.any? do |value|
+                self.#{attribute}.include?(value)
+              end
+            else
+              self.#{attribute}.present?
+            end
+          end
         )
       end
 
