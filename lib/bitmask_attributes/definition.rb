@@ -140,8 +140,10 @@ module BitmaskAttributes
           end
 
           def has_any_#{attribute}?(*values)
+            puts('VALUES:', values)
             if !values.blank?
               values.any? do |value|
+                puts('VALUE:', value)
                 self.#{attribute}.include?(value)
               end
             else
