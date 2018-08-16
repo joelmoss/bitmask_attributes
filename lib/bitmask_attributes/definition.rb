@@ -28,7 +28,7 @@ module BitmaskAttributes
         # occurs in the 'test' and 'production' environment or during migration.
         begin
           return if defined?(Rails) && Rails.configuration.cache_classes || !model.table_exists?
-        rescue => e
+        rescue ActiveRecord::NoDatabaseError => e
           return
         end
 
