@@ -31,6 +31,8 @@ module BitmaskAttributes
         unless model.columns.detect { |col| col.name == attribute.to_s }
           missing_attribute(attribute, model)
         end
+      rescue ActiveRecord::NoDatabaseError
+        nil
       end
 
       def missing_attribute(attribute, model)
